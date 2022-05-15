@@ -27,22 +27,18 @@ public class ToolsScript : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.Alpha1))
         {
-            Debug.Log("Hello: " + 1);
             SetTool(0);
         }
         if (Input.GetKeyUp(KeyCode.Alpha2))
         {
-            Debug.Log("Hello: " + 2);
             SetTool(1);
         }
         if (Input.GetKeyUp(KeyCode.Alpha3))
         {
-            Debug.Log("Hello: " + 3);
             SetTool(2);
         }
         if (Input.GetKeyUp(KeyCode.Alpha4))
         {
-            Debug.Log("Hello: " + 4);
             SetTool(3);
         }
     }

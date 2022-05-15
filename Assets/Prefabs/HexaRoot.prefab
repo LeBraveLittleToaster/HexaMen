@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hexPrefab: {fileID: 5430829645901702518}
-  hexPrefabHeight: 0.6
+  hexPrefabHeight: 0.5
   hexCollider: {fileID: 840960439754621767}
   enemyEntityPrefab: {fileID: 1112640279471516737, guid: 1b4e610ce5430e44dad6216ed576bc23, type: 3}
   playerEntityPrefab: {fileID: 4397794935065987789, guid: 692b27a6788d6f64b9d10ebd6174b62c, type: 3}
@@ -80,7 +80,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 37164c5d155f61f4f935d62a1c955d78, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.14142
+      value: 0.008
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 37164c5d155f61f4f935d62a1c955d78, type: 3}
       propertyPath: m_LocalPosition.z
@@ -187,7 +187,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 37164c5d155f61f4f935d62a1c955d78, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.14142
+      value: 0.008
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 37164c5d155f61f4f935d62a1c955d78, type: 3}
       propertyPath: m_LocalPosition.z

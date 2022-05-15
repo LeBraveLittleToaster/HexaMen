@@ -24,9 +24,8 @@ public class Hex : MonoBehaviour
     {
         if (entity != null) return;
         var position = transform.position;
-        var pos = new Vector3(position.x, position.y + (_layers.Count - 1) * hexPrefabHeight,
+        var pos = new Vector3(position.x, position.y + (_layers.Count) * hexPrefabHeight,
             position.z);
-        Debug.Log(pos + " LAYERCOUNT: " + _layers.Count);
         _layers.Add(Instantiate(hexPrefab, pos, Quaternion.identity));
         RefreshColliderPosition(pos);
     }
@@ -71,14 +70,16 @@ public class Hex : MonoBehaviour
 
     public SerializedHex GetSerialized()
     {
-        var sHex = new SerializedHex();
-        sHex.layerHeight = _layers.Count;
-        sHex.hexType = _entityType switch
+        var sHex = new SerializedHex
         {
-            EntityType.NONE => SerializedHexType.NONE,
-            EntityType.PLAYER => SerializedHexType.PLAYER,
-            EntityType.ENEMY => SerializedHexType.ENEMY,
-            _ => throw new ArgumentOutOfRangeException()
+            layerHeight = _layers.Count,
+            hexType = _entityType switch
+            {
+                EntityType.NONE => SerializedHexType.NONE,
+                EntityType.PLAYER => SerializedHexType.PLAYER,
+                EntityType.ENEMY => SerializedHexType.ENEMY,
+                _ => throw new ArgumentOutOfRangeException()
+            }
         };
         return sHex;
     }

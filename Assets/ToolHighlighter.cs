@@ -19,7 +19,6 @@ public class ToolHighlighter : MonoBehaviour
     private void Awake()
     {
         ToolsScript.onToolChanged += OnToolChanged;
-        _highlightedButton = toolAdd;
     }
 
     private void Start()
@@ -38,5 +37,6 @@ public class ToolHighlighter : MonoBehaviour
             Tools.PLACE_ENEMY => toolPlayer,
             _ => throw new ArgumentOutOfRangeException(nameof(tool), tool, null)
         };
+
     }
 }
