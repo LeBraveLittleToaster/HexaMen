@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Hex : MonoBehaviour
@@ -15,9 +16,43 @@ public class Hex : MonoBehaviour
     private EntityType _entityType = EntityType.NONE;
 
 
-    private void Start()
+    private void Awake()
     {
         _layers = new List<Transform> {hexPrefab};
+    }
+
+    public void ReInitiate(int height, EntityType entityType)
+    {
+        if (entity != null)
+        {
+            Destroy(entity.gameObject);
+            _entityType = EntityType.NONE;
+        }
+
+        _entityType = entityType;
+        if (_entityType != EntityType.NONE)
+        {
+            PlaceOrRemoveEntity(entityType);
+        }
+
+        var isFirst = true;
+        foreach (var layer in _layers)
+        {
+            if (isFirst)
+            {
+                isFirst = false;
+            }
+            else
+            {
+                Destroy(layer.gameObject);
+            }
+        }
+
+        for (var i = 1; i < height; i++)
+        {
+            AddLayer();
+        }
+        RefreshColliderPosition();
     }
 
     public void AddLayer()
@@ -26,8 +61,10 @@ public class Hex : MonoBehaviour
         var position = transform.position;
         var pos = new Vector3(position.x, position.y + (_layers.Count) * hexPrefabHeight,
             position.z);
-        _layers.Add(Instantiate(hexPrefab, pos, Quaternion.identity));
-        RefreshColliderPosition(pos);
+        var instance = Instantiate(hexPrefab, pos, Quaternion.identity);
+        instance.parent = transform;
+        _layers.Add(instance);
+        RefreshColliderPosition();
     }
 
     public void SubtractLayer()
@@ -36,7 +73,7 @@ public class Hex : MonoBehaviour
         var topLayer = _layers[^1];
         Destroy(topLayer.gameObject);
         _layers.RemoveAt(_layers.Count - 1);
-        RefreshColliderPosition(_layers[^1].position);
+        RefreshColliderPosition();
     }
 
     public void PlaceOrRemoveEntity(EntityType entityType)
@@ -60,12 +97,13 @@ public class Hex : MonoBehaviour
             EntityType.ENEMY => Instantiate(enemyEntityPrefab, pos, Quaternion.identity),
             _ => throw new ArgumentOutOfRangeException(nameof(entityType), entityType, null)
         };
+        entity.parent = transform;
         _entityType = entityType;
     }
 
-    private void RefreshColliderPosition(Vector3 colliderPos)
+    private void RefreshColliderPosition()
     {
-        hexCollider.transform.position = colliderPos;
+        hexCollider.transform.position = _layers[^1].position;
     }
 
     public SerializedHex GetSerialized()
