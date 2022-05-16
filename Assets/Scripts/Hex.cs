@@ -21,7 +21,7 @@ public class Hex : MonoBehaviour
 
     private void Awake()
     {
-        _layers = new List<Transform> {hexPrefab};
+        _layers = new List<Transform> { hexPrefab };
         _baseColor = _layers[^1].GetComponent<Renderer>().material.color;
     }
 
@@ -31,7 +31,7 @@ public class Hex : MonoBehaviour
         _row = row;
         return this;
     }
-    
+
     public void ReInitiate(int column, int row, int height, EntityType entityType)
     {
         _column = column;
@@ -65,6 +65,7 @@ public class Hex : MonoBehaviour
         {
             AddLayer();
         }
+
         RefreshColliderPosition();
     }
 
@@ -139,6 +140,9 @@ public class Hex : MonoBehaviour
 
     public void HightLightHex(bool isHighlighted)
     {
-        _layers[^1].GetComponent<Renderer>().material.color = isHighlighted ? highlightColor : _baseColor;
+        foreach (var layer in _layers)
+        {
+            layer.GetComponent<Renderer>().material.color = isHighlighted ? highlightColor : _baseColor;
+        }
     }
 }

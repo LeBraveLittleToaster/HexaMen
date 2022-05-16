@@ -112,12 +112,7 @@ public class Pathfinding
     {
         var dstX = Mathf.Abs(nodeA.position.x - nodeB.position.x);
         var dstY = Mathf.Abs(nodeA.position.y - nodeB.position.y);
-        if (dstX > dstY)
-        {
-            return 14 * dstY + 10 * dstX - dstY;
-        }
-
-        return 14 * dstX + 10 * dstY - dstX;
+        return Mathf.Max(dstX, dstY);
     }
 }
 
