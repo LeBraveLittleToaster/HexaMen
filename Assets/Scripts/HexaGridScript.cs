@@ -16,6 +16,34 @@ public class HexaGridScript : MonoBehaviour
     private Hex[,] _grid;
     private List<HexNeighbor> currentHightlightedNeighbors = new List<HexNeighbor>();
 
+    private List<AStartNode> path = new();  
+    
+    public void TestPathfinding()
+    {
+        ClearOldPath(path);
+        var aGrid = PathfindingUtils.GetAStartNodeGridFromHexGrid(_grid);
+        var pathfinding = new Pathfinding();
+        path = pathfinding.FindPath(aGrid, aGrid[0,0], aGrid[2,4]);
+        Debug.Log(path);
+        HightLightPath(path);
+    }
+
+    private void HightLightPath(List<AStartNode> nodes)
+    {
+        foreach (var node in nodes)
+        {
+            _grid[node.position.x, node.position.y].HightLightHex(true);
+        }
+    }
+    
+    private void ClearOldPath(List<AStartNode> nodes)
+    {
+        foreach (var node in nodes)
+        {
+            _grid[node.position.x, node.position.y].HightLightHex(false);
+        }
+    }
+    
     private void Start()
     {
         try
