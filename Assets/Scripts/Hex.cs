@@ -10,22 +10,35 @@ public class Hex : MonoBehaviour
     [SerializeField] private Transform hexCollider;
     [SerializeField] private Transform enemyEntityPrefab;
     [SerializeField] private Transform playerEntityPrefab;
+    [SerializeField] private Color highlightColor;
 
     private List<Transform> _layers;
-    private Transform entity = null;
+    private Transform _entity = null;
     private EntityType _entityType = EntityType.NONE;
+    private int _column, _row;
+    private Color _baseColor;
 
 
     private void Awake()
     {
         _layers = new List<Transform> {hexPrefab};
+        _baseColor = _layers[^1].GetComponent<Renderer>().material.color;
     }
 
-    public void ReInitiate(int height, EntityType entityType)
+    public Hex Initiate(int column, int row)
     {
-        if (entity != null)
+        _column = column;
+        _row = row;
+        return this;
+    }
+    
+    public void ReInitiate(int column, int row, int height, EntityType entityType)
+    {
+        _column = column;
+        _row = row;
+        if (_entity != null)
         {
-            Destroy(entity.gameObject);
+            Destroy(_entity.gameObject);
             _entityType = EntityType.NONE;
         }
 
@@ -57,7 +70,7 @@ public class Hex : MonoBehaviour
 
     public void AddLayer()
     {
-        if (entity != null) return;
+        if (_entity != null) return;
         var position = transform.position;
         var pos = new Vector3(position.x, position.y + (_layers.Count) * hexPrefabHeight,
             position.z);
@@ -69,7 +82,7 @@ public class Hex : MonoBehaviour
 
     public void SubtractLayer()
     {
-        if (_layers.Count <= 1 || entity != null) return;
+        if (_layers.Count <= 1 || _entity != null) return;
         var topLayer = _layers[^1];
         Destroy(topLayer.gameObject);
         _layers.RemoveAt(_layers.Count - 1);
@@ -78,9 +91,9 @@ public class Hex : MonoBehaviour
 
     public void PlaceOrRemoveEntity(EntityType entityType)
     {
-        if (entity != null)
+        if (_entity != null)
         {
-            Destroy(entity.gameObject);
+            Destroy(_entity.gameObject);
             _entityType = EntityType.NONE;
             return;
         }
@@ -91,13 +104,13 @@ public class Hex : MonoBehaviour
             position.y + (_layers.Count * hexPrefabHeight),
             position.z
         );
-        entity = entityType switch
+        _entity = entityType switch
         {
             EntityType.PLAYER => Instantiate(playerEntityPrefab, pos, Quaternion.identity),
             EntityType.ENEMY => Instantiate(enemyEntityPrefab, pos, Quaternion.identity),
             _ => throw new ArgumentOutOfRangeException(nameof(entityType), entityType, null)
         };
-        entity.parent = transform;
+        _entity.parent = transform;
         _entityType = entityType;
     }
 
@@ -110,6 +123,8 @@ public class Hex : MonoBehaviour
     {
         var sHex = new SerializedHex
         {
+            column = _column,
+            row = _row,
             layerHeight = _layers.Count,
             hexType = _entityType switch
             {
@@ -120,5 +135,10 @@ public class Hex : MonoBehaviour
             }
         };
         return sHex;
+    }
+
+    public void HightLightHex(bool isHighlighted)
+    {
+        _layers[^1].GetComponent<Renderer>().material.color = isHighlighted ? highlightColor : _baseColor;
     }
 }

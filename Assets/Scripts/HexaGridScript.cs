@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -13,26 +14,7 @@ public class HexaGridScript : MonoBehaviour
     [SerializeField] private float hexSize = 2;
 
     private Hex[,] _grid;
-
-
-    public void ResizeGrid(int column, int row)
-    {
-        var oldGrid = _grid;
-        _grid = ExtendToGrid(column, row, _grid);
-        DeleteGrid(oldGrid);
-        UpdateCameraTarget();
-    }
-
-    private static void DeleteGrid(Hex[,] oldGrid)
-    {
-        for (var columnI = 0; columnI < oldGrid.GetLength(0); columnI++)
-        {
-            for (var rowI = 0; rowI < oldGrid.GetLength(1); rowI++)
-            {
-                Destroy(oldGrid[columnI, rowI].gameObject);
-            }
-        }
-    }
+    private List<HexNeighbor> currentHightlightedNeighbors = new List<HexNeighbor>();
 
     private void Start()
     {
@@ -50,6 +32,47 @@ public class HexaGridScript : MonoBehaviour
         UpdateCameraTarget();
     }
 
+    public void ResizeGrid(int column, int row)
+    {
+        var oldGrid = _grid;
+        _grid = ExtendToGrid(column, row, _grid);
+        DeleteGrid(oldGrid);
+        UpdateCameraTarget();
+    }
+    private Hex[,] ExtendToGrid(int rowCount, int columnCount, Hex[,] oldGrid)
+    {
+        var newGrid = GenerateGrid(columnCount, rowCount, hexSize);
+        for (var column = 0; column < newGrid.GetLength(0); column++)
+        {
+            for (var row = 0; row < newGrid.GetLength(1); row++)
+            {
+                if (column >= oldGrid.GetLength(0) || row >= oldGrid.GetLength(1)) continue;
+                var newHex = newGrid[column, row].GetComponent<Hex>();
+                var oldHex = oldGrid[column, row].GetComponent<Hex>();
+                newHex.ReInitiate(column, row, oldHex.GetSerialized().layerHeight,
+                    GetEntityTypeFromSerializedType(oldHex.GetSerialized().hexType));
+            }
+        }
+
+        return newGrid;
+    }
+    private static void DeleteGrid(Hex[,] oldGrid)
+    {
+        for (var columnI = 0; columnI < oldGrid.GetLength(0); columnI++)
+        {
+            for (var rowI = 0; rowI < oldGrid.GetLength(1); rowI++)
+            {
+                Destroy(oldGrid[columnI, rowI].gameObject);
+            }
+        }
+    }
+    
+    private void UpdateCameraTarget()
+    {
+        cameraTarget.position = new Vector3(_grid.GetLength(0) * hexSize / 2, cameraTarget.position.y,
+            _grid.GetLength(1) * hexSize / 2);
+    }
+
     private Hex[,] GenerateFromSavedGrid(SerializedGrid savedGrid)
     {
         var grid = GenerateGrid(savedGrid.grid.GetLength(0), savedGrid.grid.GetLength(1), hexSize);
@@ -57,14 +80,14 @@ public class HexaGridScript : MonoBehaviour
         {
             for (var rowI = 0; rowI < savedGrid.grid.GetLength(1); rowI++)
             {
-                grid[columnI, rowI].GetComponent<Hex>().ReInitiate(savedGrid.grid[columnI, rowI].layerHeight,
+                grid[columnI, rowI].GetComponent<Hex>().ReInitiate(columnI, rowI, savedGrid.grid[columnI, rowI].layerHeight,
                     GetEntityTypeFromSerializedType(savedGrid.grid[columnI, rowI].hexType));
             }
         }
         return grid;
     }
 
-    private EntityType GetEntityTypeFromSerializedType(SerializedHexType hexType)
+    private static EntityType GetEntityTypeFromSerializedType(SerializedHexType hexType)
     {
         return hexType switch
         {
@@ -75,11 +98,7 @@ public class HexaGridScript : MonoBehaviour
         };
     }
 
-    private void UpdateCameraTarget()
-    {
-        cameraTarget.position = new Vector3(_grid.GetLength(0) * hexSize / 2, cameraTarget.position.y,
-            _grid.GetLength(1) * hexSize / 2);
-    }
+    
 
     private Hex[,] GenerateGrid(int columnCount, int rowCount, float hexSize)
     {
@@ -93,30 +112,14 @@ public class HexaGridScript : MonoBehaviour
             {
                 hexGrid[columnI, rowI] =
                     Instantiate(hexaPrefab, GetPositionFromIndexes(columnI, rowI, hexWidth, hexHeight),
-                        Quaternion.identity);
+                        Quaternion.identity).Initiate(columnI, rowI);
             }
         }
 
         return hexGrid;
     }
 
-    private Hex[,] ExtendToGrid(int rowCount, int columnCount, Hex[,] oldGrid)
-    {
-        var newGrid = GenerateGrid(columnCount, rowCount, hexSize);
-        for (var column = 0; column < newGrid.GetLength(0); column++)
-        {
-            for (var row = 0; row < newGrid.GetLength(1); row++)
-            {
-                if (column >= oldGrid.GetLength(0) || row >= oldGrid.GetLength(1)) continue;
-                var newHex = newGrid[column, row].GetComponent<Hex>();
-                var oldHex = oldGrid[column, row].GetComponent<Hex>();
-                newHex.ReInitiate(oldHex.GetSerialized().layerHeight,
-                    GetEntityTypeFromSerializedType(newHex.GetSerialized().hexType));
-            }
-        }
-
-        return newGrid;
-    }
+    
 
     /**
      * Indexes as "even-r"
@@ -144,25 +147,26 @@ public class HexaGridScript : MonoBehaviour
             JsonConvert.SerializeObject(new SerializedGrid {grid = grid})
         );
     }
-}
 
-[Serializable]
-public class SerializedGrid
-{
-    public SerializedHex[,] grid;
-}
+    public void TestHexClicked()
+    {
+        OnHexClicked(3,3);
+    }
+    
+    private void OnHexClicked(int column, int row)
+    {
+        var hexNeighbors = HexPathFindingUtil.GetNeighbors(_grid, column, row);
+        foreach (var neighbor in currentHightlightedNeighbors)
+        {
+            neighbor.Hex.HightLightHex(false);
+        }
 
-[Serializable]
-public class SerializedHex
-{
-    public int layerHeight;
-    public SerializedHexType hexType;
-}
-
-[Serializable]
-public enum SerializedHexType
-{
-    NONE,
-    PLAYER,
-    ENEMY
+        currentHightlightedNeighbors = hexNeighbors;
+        
+        foreach (var neighbor in currentHightlightedNeighbors)
+        {
+            neighbor.Hex.HightLightHex(true);
+        }
+    }
+   
 }

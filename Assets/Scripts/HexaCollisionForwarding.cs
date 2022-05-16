@@ -1,10 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class HexaCollisionForwarding : MonoBehaviour
 {
+    
     [SerializeField] private Hex hexRef;
     private Tools _currentTool = Tools.ADD;
 
@@ -17,10 +17,10 @@ public class HexaCollisionForwarding : MonoBehaviour
     {
         _currentTool = tool;
     }
-
+    
     private void OnMouseDown()
     {
-        if (!Input.GetMouseButton(0)) return;
+        if (!Input.GetMouseButton(0) || EventSystem.current.IsPointerOverGameObject()) return;
         switch (_currentTool)
         {
             case Tools.ADD:

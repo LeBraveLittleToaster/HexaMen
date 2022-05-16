@@ -51,6 +51,7 @@ MonoBehaviour:
   hexCollider: {fileID: 840960439754621767}
   enemyEntityPrefab: {fileID: 1112640279471516737, guid: 1b4e610ce5430e44dad6216ed576bc23, type: 3}
   playerEntityPrefab: {fileID: 4397794935065987789, guid: 692b27a6788d6f64b9d10ebd6174b62c, type: 3}
+  highlightColor: {r: 0.8582506, g: 0.53960484, b: 0.8867924, a: 0}
 --- !u!1001 &873989067048903852
 PrefabInstance:
   m_ObjectHideFlags: 0
