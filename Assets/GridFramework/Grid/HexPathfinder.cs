@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -20,48 +21,76 @@ namespace Grid
 
         public List<IHexTile> GetPath(IHexGrid grid, IHexTile tileA, IHexTile tileB, int maxLayerDifference)
         {
-            var nodeA = new AStartNode(tileA.GetPosition(), tileA.GetLayerHeight());
-            var nodeB = new AStartNode(tileB.GetPosition(), tileB.GetLayerHeight());
-            var path = FindPath(ConvertToAStartNodes(grid.GetTiles()), nodeA, nodeB, maxLayerDifference);
+            var path = FindPath(ConvertToAStarNodes(grid.GetTiles()), tileA.GetPosition(), tileB.GetPosition() , maxLayerDifference);
             return GetHexTilesFromAStarNodes(path, grid);
         }
 
-        private List<IHexTile> GetHexTilesFromAStarNodes(List<AStartNode> nodes, IHexGrid grid)
+        private List<IHexTile> GetHexTilesFromAStarNodes(List<AStarNode> nodes, IHexGrid grid)
         {
             return nodes.Select(node => grid.GetTileAt(node.position.X, node.position.Y)).ToList();
         }
 
-        private List<AStartNode> FindPath(AStartNode[,] grid, AStartNode startNode,
-            AStartNode targetNode, int maxLayerDifference)
+        private List<AStarNode> GetNodesWithParent(AStarNode[,] grid, AStarNode startNode, AStarNode targetNode)
         {
-            var openSet = new List<AStartNode>();
-            var closedSet = new HashSet<AStartNode>();
+            var l = new List<AStarNode>();
+            for(var c = 0; c < grid.GetLength(0); c++)
+            {
+                for(var r = 0; r < grid.GetLength(1); r++)
+                {
+                    var node = grid[c, r];
+                    if (node.parent != null)
+                    {
+                        l.Add(node);
+                    }
+                }
+            }
+
+            return l;
+        }
+        
+        private List<AStarNode> FindPath(AStarNode[,] grid, Position startPos,
+            Position targetPos, int maxLayerDifference)
+        {
+            var startNode = grid[startPos.X, startPos.Y];
+            var targetNode = grid[targetPos.X, targetPos.Y];
+            
+            var openSet = new List<AStarNode>();
+            var closedSet = new HashSet<AStarNode>();
 
             openSet.Add(startNode);
 
             while (openSet.Count > 0)
             {
                 var currentNode = openSet[0];
-                foreach (var t in openSet)
+                for (var i = 0; i < openSet.Count; i++)
                 {
-                    if (t.FCost() < currentNode.FCost() ||
-                        t.FCost() == currentNode.FCost() && t.hCost < currentNode.hCost)
+                    if (openSet[i].FCost() < currentNode.FCost() ||
+                        openSet[i].FCost() == currentNode.FCost() && openSet[i].hCost < currentNode.hCost)
                     {
-                        currentNode = t;
+                        currentNode = openSet[i];
                     }
                 }
 
                 openSet.Remove(currentNode);
                 closedSet.Add(currentNode);
 
-                if (Equals(currentNode, targetNode))
+                if (currentNode == targetNode)
                 {
+                    /*
+                    var nodesWithParent = GetNodesWithParent(grid, startNode , targetNode);
+                    foreach (var node in nodesWithParent)
+                    {
+                        Debug.Log(node.position + " | " + (node.parent == null ? " <>" : node.parent.position));
+                    }
+                    */
                     return RetracePath(startNode, targetNode);
                 }
 
-                foreach (var neighbor in GetNeighbors(grid, currentNode.position.X, currentNode.position.Y,
-                             maxLayerDifference))
+                var neighbors = GetNeighbors(grid, currentNode.position.X, currentNode.position.Y,
+                    maxLayerDifference);
+                foreach (var neighbor in neighbors)
                 {
+                    
                     if (closedSet.Contains(neighbor))
                     {
                         continue;
@@ -83,7 +112,7 @@ namespace Grid
             return null;
         }
 
-        private static List<AStartNode> GetNeighbors(AStartNode[,] grid, int column, int row, int maxLayerDifference)
+        private static List<AStarNode> GetNeighbors(AStarNode[,] grid, int column, int row, int maxLayerDifference)
         {
             var directionVectors = row % 2 == 0 ? EvenRowEvenRDirections : OddRowEvenRDirections;
             return directionVectors
@@ -94,7 +123,7 @@ namespace Grid
                 .ToList();
         }
 
-        private static AStartNode TryGettingNeighbor(AStartNode[,] grid, int columnStart, int rowStart, int columnEnd,
+        private static AStarNode TryGettingNeighbor(AStarNode[,] grid, int columnStart, int rowStart, int columnEnd,
             int rowEnd, int maxLayerDifference)
         {
             if (columnStart < 0 || rowStart < 0 || columnStart >= grid.GetLength(0) || rowStart >= grid.GetLength(1)
@@ -113,11 +142,11 @@ namespace Grid
         }
 
 
-        List<AStartNode> RetracePath(AStartNode startNode, AStartNode endNode)
+        List<AStarNode> RetracePath(AStarNode startNode, AStarNode endNode)
         {
-            var path = new List<AStartNode> { startNode };
+            var path = new List<AStarNode> { startNode };
             var currentNode = endNode;
-            while (!Equals(currentNode, startNode))
+            while (currentNode != startNode)
             {
                 path.Add(currentNode);
                 currentNode = currentNode.parent;
@@ -128,24 +157,24 @@ namespace Grid
             return path;
         }
 
-        private static int GetMarshalDistance(AStartNode nodeA, AStartNode nodeB)
+        private static int GetMarshalDistance(AStarNode nodeA, AStarNode nodeB)
         {
             var dstX = Mathf.Abs(nodeA.position.X - nodeB.position.X);
             var dstY = Mathf.Abs(nodeA.position.Y - nodeB.position.Y);
             return Mathf.Max(dstX, dstY);
         }
 
-        private static AStartNode[,] ConvertToAStartNodes(IHexTile[,] grid)
+        private static AStarNode[,] ConvertToAStarNodes(IHexTile[,] grid)
         {
             var columnCount = grid.GetLength(0);
             var rowCount = grid.GetLength(1);
-            var aGrid = new AStartNode[columnCount, rowCount];
+            var aGrid = new AStarNode[columnCount, rowCount];
             for (var column = 0; column < columnCount; column++)
             {
                 for (var row = 0; row < rowCount; row++)
                 {
                     var hexTile = grid[column, row];
-                    aGrid[column, row] = new AStartNode(hexTile.GetPosition(), hexTile.GetLayerHeight());
+                    aGrid[column, row] = new AStarNode(hexTile.GetPosition(), hexTile.GetLayerHeight());
                 }
             }
 
@@ -154,16 +183,16 @@ namespace Grid
     }
 
 
-    public class AStartNode
+    public class AStarNode
     {
-        public readonly Position position;
-        public readonly int layerHeight;
+        public Position position;
+        public int layerHeight;
 
         public int gCost;
         public int hCost;
-        public AStartNode parent;
+        public AStarNode parent;
 
-        public AStartNode(Position position, int layerHeight)
+        public AStarNode(Position position, int layerHeight)
         {
             this.position = position;
             this.layerHeight = layerHeight;
@@ -172,24 +201,6 @@ namespace Grid
         public int FCost()
         {
             return gCost + hCost;
-        }
-
-        protected bool Equals(AStartNode other)
-        {
-            return Equals(position, other.position);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((AStartNode)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return (position != null ? position.GetHashCode() : 0);
         }
     }
 }

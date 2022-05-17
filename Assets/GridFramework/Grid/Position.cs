@@ -17,7 +17,10 @@ namespace Grid
 
         public int Y => _y;
 
-        
+        public override string ToString()
+        {
+            return "<" + _x + "," + _y + ">";
+        }
     }
     
     

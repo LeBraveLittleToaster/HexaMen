@@ -7,6 +7,8 @@ public class GameboardScript : MonoBehaviour
     [SerializeField] private int column = 7;
     [SerializeField] private int row = 5;
 
+    [SerializeField] private int randomHeightAmount = 250;
+    [SerializeField] private int maxLayerDifference = 1;
     [SerializeField] private int hexSize = 2;
 
     [SerializeField] private TileScript hexPrefab;
@@ -22,7 +24,7 @@ public class GameboardScript : MonoBehaviour
     {
         _grid = new HexGrid(column, row);
         _gaGrid = GenerateEmptyBoard(_grid);
-        IncreaseRandomHeight(1000);
+        IncreaseRandomHeight(randomHeightAmount);
     }
 
     public void TestRandomPathFinding()
@@ -36,14 +38,13 @@ public class GameboardScript : MonoBehaviour
         var randomRowStart = Random.Range(0, _grid.GetTiles().GetLength(1));
         var randomColumnEnd = Random.Range(0, _grid.GetTiles().GetLength(0));
         var randomRowEnd = Random.Range(0, _grid.GetTiles().GetLength(1));
-        Debug.Log("Finding path from [" + randomColumnStart + "," + randomRowStart + " to [" + randomColumnEnd + "," +
-                  randomRowEnd + "]");
+        Debug.Log("Finding path from [" + randomColumnStart + "," + randomRowStart + " to [" + randomColumnEnd + "," + randomRowEnd + "]");
         var hexPathfinder = new HexPathfinder();
         _highlightedTiles = hexPathfinder.GetPath(
             _grid,
-            _grid.GetTileAt(randomColumnStart, randomRowStart),
+            _grid.GetTileAt(randomColumnStart,randomRowStart),
             _grid.GetTileAt(randomColumnEnd, randomRowEnd),
-            100);
+            maxLayerDifference);
         foreach (var highlightedTile in _highlightedTiles)
         {
             _gaGrid[highlightedTile.GetPosition().X, highlightedTile.GetPosition().Y].SetHighlighted(true);
