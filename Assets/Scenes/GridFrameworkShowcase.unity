@@ -455,8 +455,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1395a74ace25dd140a7befbeffa76c73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  column: 25
-  row: 25
+  column: 20
+  row: 20
+  randomHeightAmount: 100
+  maxLayerDifference: 1
   hexSize: 1
   hexPrefab: {fileID: 5682303724995560598, guid: 0303012c88dfd3646ae672950c3ad080, type: 3}
   enemyPrefab: {fileID: 5077782445038432659, guid: 7ec55a5a3a532014396863575d33c6f1, type: 3}

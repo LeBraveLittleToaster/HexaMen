@@ -25,6 +25,15 @@ public class GameboardScript : MonoBehaviour
         _grid = new HexGrid(column, row);
         _gaGrid = GenerateEmptyBoard(_grid);
         IncreaseRandomHeight(randomHeightAmount);
+
+
+        var hexTile = _grid.GetTileAt(2, 1);
+        UpdateFrontendTile(hexTile);
+    }
+
+    private void UpdateFrontendTile(IHexTile hexTile)
+    {
+        _gaGrid[hexTile.GetPosition().X, hexTile.GetPosition().Y].SyncWithHexTile(hexTile);
     }
 
     public void TestRandomPathFinding()
